@@ -1,5 +1,4 @@
-
-# Kubernetes Full Cluster Reset Script (Master & Worker Nodes)
+# 🧹 Kubernetes Full Cluster Reset Script (Master & Worker Nodes)
 
 ## 📌 Purpose
 
@@ -15,7 +14,7 @@ This script completely removes Kubernetes components, container runtime, network
 
 ---
 
-## 🧾 Full Cleanup Script 
+## 🧾 Full Cleanup Script
 
 ```bash
 echo "Cluster Will Be Deleted In 0"
@@ -28,7 +27,7 @@ sudo rm -rf /etc/kubernetes/kubelet.conf \
             /etc/kubernetes/pki/ca.crt \
             /etc/kubernetes/bootstrap-kubelet.conf
 
-sudo netstat -tupln | grep -E "10250|10256|10257|10259|6443" | \
+sudo netstat -tupln | grep -E "10250|10256|10257|10259" | \
 awk '{print $7}' | cut -d'/' -f1 | grep -E '^[0-9]+$' | \
 xargs -r sudo kill -9
 
@@ -60,6 +59,32 @@ rm -rf /home/kube/node_joined.log
 
 ---
 
+## 🧩 Master Node Specific Cleanup (Port 6443 Removal)
+
+⚠️ Run this **ONLY on the master node**
+
+### 1. Install net-tools (if not available)
+
+```bash
+sudo apt install net-tools -y
+```
+
+### 2. Check Kubernetes API server process (port 6443)
+
+```bash
+sudo netstat -tnpl | grep 6443
+```
+
+### 3. Kill the process using port 6443
+
+```bash
+sudo kill -9 <PID-6443>
+```
+
+👉 Replace `<PID-6443>` with the actual process ID from the previous command.
+
+---
+
 ## ⚙️ How to Use This Script
 
 ### 1. Create the script file
@@ -68,7 +93,9 @@ rm -rf /home/kube/node_joined.log
 nano cluster_reset.sh
 ```
 
-### 2. Paste the above script into the file
+---
+
+### 2. Paste the cleanup script into the file
 
 Save and exit:
 
@@ -98,13 +125,14 @@ chmod 700 cluster_reset.sh
 
 This script performs:
 
-* Kubernetes reset (`kubeadm reset`)
-* Removal of kubelet/kubeadm/kubectl
+* Kubernetes cluster reset (`kubeadm reset`)
+* Removal of kubelet, kubeadm, kubectl
 * Docker & containerd cleanup
-* Network/CNI cleanup
-* System package cleanup
-* Process termination on Kubernetes ports
-* Log file cleanup
+* CNI/network cleanup
+* Kubernetes port cleanup (10250–10259)
+* **Master node API server cleanup (6443)**
+* System cleanup and updates
+* Log file removal
 
 ---
 
